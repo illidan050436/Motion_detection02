@@ -15,20 +15,22 @@ import java.util.ArrayList;
 import static java.lang.Math.*;
 
 public class MainActivity extends AppCompatActivity implements SensorEventListener {
-    public boolean isdetecting = false;
-    public SensorManager sManager = null;
-    public Sensor aSensor = null;
-    public float xvalue = 0;
-    public float yvalue = 0;
-    public float zvalue = 0;
-    public float xcal = 0;
-    public float ycal = 0;
-    public float zcal = 0;
-    public ArrayList<Float> xcal_final = new ArrayList<>();
-    public ArrayList<Float> ycal_final = new ArrayList<>();
-    public ArrayList<Float> zcal_final = new ArrayList<>();
-    public int value_count = 0;
-    public String state = "hold";
+    private boolean isdetecting = false;
+    private SensorManager sManager = null;
+    private Sensor aSensor = null;
+    private float xvalue = 0;
+    private float yvalue = 0;
+    private float zvalue = 0;
+    private float xcal = 0;
+    private float ycal = 0;
+    private float zcal = 0;
+    private ArrayList<Float> xcal_final = new ArrayList<>();
+    private ArrayList<Float> ycal_final = new ArrayList<>();
+    private ArrayList<Float> zcal_final = new ArrayList<>();
+    private int value_count = 0;
+    private String state_lr = "hold";
+    private String state_ud = "hold";
+    private String state_fb = "hold";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +39,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         final Button cal = (Button) findViewById(R.id.button1);
         final Button start = (Button) findViewById(R.id.button2);
-        final TextView pos = (TextView) findViewById(R.id.textView1);
         sManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         aSensor = sManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION);
 
@@ -45,7 +46,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         cal.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (value_count >= 50) {
+                if (value_count >= 100) {
                     Float sum_x = 0.00f;
                     Float sum_y = 0.00f;
                     Float sum_z = 0.00f;
@@ -101,7 +102,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             TextView xText = (TextView) findViewById(R.id.textView5);
             TextView yText = (TextView) findViewById(R.id.textView7);
             TextView zText = (TextView) findViewById(R.id.textView9);
-            TextView pos = (TextView) findViewById(R.id.textView1);
+            TextView pos_lr = (TextView) findViewById(R.id.textView1);
+            TextView pos_ud = (TextView) findViewById(R.id.textView11);
+            TextView pos_fb = (TextView) findViewById(R.id.textView10);
             float xtemp;
             float ytemp;
             float ztemp;
@@ -109,94 +112,118 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                 xvalue = event.values[0];
                 yvalue = event.values[1];
                 zvalue = event.values[2];
-                if (value_count <= 50){
-                    xcal_final.add(xvalue);
-                    ycal_final.add(yvalue);
-                    zcal_final.add(zvalue);
+                if (value_count <= 100){
+                    xcal_final.add(abs(xvalue));
+                    ycal_final.add(abs(yvalue));
+                    zcal_final.add(abs(zvalue));
                     value_count++;
                 }
             }
-            xtemp = xvalue - xcal;
-            ytemp = yvalue - ycal;
-            ztemp = zvalue - zcal;
+            if (xvalue > 0.00f) {
+                xtemp = xvalue - xcal;
+            }else {
+                xtemp = xvalue + xcal;
+            }
+            if (yvalue > 0.00f) {
+                ytemp = yvalue - ycal;
+            }else {
+                ytemp = yvalue + ycal;
+            }
+            if (zvalue > 0.00f) {
+                ztemp = zvalue - zcal;
+            }else {
+                ztemp = zvalue + zcal;
+            }
             xText.setText(String.format("%f", xtemp));
             yText.setText(String.format("%f", ytemp));
             zText.setText(String.format("%f", ztemp));
 
-            switch (state){
+            switch (state_lr) {
                 case "left":
-                    pos.setText(getResources().getText(R.string.left));
+                    pos_lr.setText(getResources().getText(R.string.left));
                     break;
                 case "right":
-                    pos.setText(getResources().getText(R.string.right));
-                    break;
-                case "forward":
-                    pos.setText(getResources().getText(R.string.forward));
-                    break;
-                case "back":
-                    pos.setText(getResources().getText(R.string.back));
-                    break;
-                case "up":
-                    pos.setText(getResources().getText(R.string.up));
-                    break;
-                case "down":
-                    pos.setText(getResources().getText(R.string.down));
+                    pos_lr.setText(getResources().getText(R.string.right));
                     break;
                 default:
-                    pos.setText(getResources().getText(R.string.hold));
+                    pos_lr.setText(getResources().getText(R.string.hold));
+            }
+            switch (state_fb) {
+                case "forward":
+                    pos_fb.setText(getResources().getText(R.string.forward));
+                    break;
+                case "back":
+                    pos_fb.setText(getResources().getText(R.string.back));
+                    break;
+                default:
+                    pos_fb.setText(getResources().getText(R.string.hold));
+            }
+            switch (state_ud) {
+                case "up":
+                    pos_ud.setText(getResources().getText(R.string.up));
+                    break;
+                case "down":
+                    pos_ud.setText(getResources().getText(R.string.down));
+                    break;
+                default:
+                    pos_ud.setText(getResources().getText(R.string.hold));
                     break;
             }
 
-            switch (state){
+            switch (state_lr) {
                 case "hold":
-                    float max;
-                    max = max(xtemp, ytemp);
-                    max = max(max, ztemp);
-                    if (max == xtemp) {
-                        if (xtemp > 0.8)
-                            state = "right";
-                        else if (xtemp < -0.8)
-                            state = "left";
-                    }else if (max == ytemp) {
-                        if (ytemp > 0.8)
-                            state = "forward";
-                        else if (ytemp < -0.8)
-                            state = "back";
-                    }else if (max == ztemp){
-                        if (ztemp > 0.8)
-                            state = "up";
-                        else if (ztemp < -0.8)
-                            state = "down";
-                    }
+                    if (xtemp > 1)
+                        state_lr = "right";
+                    else if (xtemp < -1)
+                        state_lr = "left";
                     break;
                 case "left":
                     if (xtemp > 0.2)
-                        state = "hold";
+                        state_lr = "hold";
                     break;
                 case "right":
                     if (xtemp < -0.2)
-                        state = "hold";
-                    break;
-                case "forward":
-                    if (ytemp < -0.2)
-                        state = "hold";
-                    break;
-                case "back":
-                    if (ytemp > 0.2)
-                        state = "hold";
-                    break;
-                case "up":
-                    if (ztemp < -0.2)
-                        state = "hold";
-                    break;
-                case "down":
-                    if (ztemp > 0.2)
-                        state = "hold";
+                        state_lr = "hold";
                     break;
                 default:
                     break;
             }
-
+            switch (state_fb) {
+                case "hold":
+                    if (ytemp > 1)
+                        state_fb = "forward";
+                    else if (ytemp < -1)
+                        state_fb = "back";
+                    break;
+                case "forward":
+                    if (ytemp < -0.2)
+                        state_fb = "hold";
+                    break;
+                case "back":
+                    if (ytemp > 0.2)
+                        state_fb = "hold";
+                    break;
+                default:
+                    break;
+            }
+            switch (state_ud) {
+                case "hold":
+                    if (ztemp > 1)
+                        state_ud = "up";
+                    else if (ztemp < -1)
+                        state_ud = "down";
+                    break;
+                case "up":
+                    if (ztemp < -0.2)
+                        state_ud = "hold";
+                    break;
+                case "down":
+                    if (ztemp > 0.2)
+                        state_ud = "hold";
+                    break;
+                default:
+                    break;
+            }
         }
     }
     @Override

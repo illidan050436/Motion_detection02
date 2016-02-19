@@ -20,8 +20,24 @@
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="@string/hold"
-            android:id="@+id/textView1"
+            android:id="@+id/textView10"
             android:layout_marginTop="136dp"
+            android:layout_gravity="center_horizontal"
+            android:textAlignment="center"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/hold"
+            android:id="@+id/textView1"
+            android:layout_gravity="center_horizontal"
+            android:textAlignment="center"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="@string/hold"
+            android:id="@+id/textView11"
             android:layout_gravity="center_horizontal"
             android:textAlignment="center"/>
         <TextView
