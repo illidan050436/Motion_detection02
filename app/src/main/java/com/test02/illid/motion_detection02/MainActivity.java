@@ -61,14 +61,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     xcal_final.clear();
                     ycal_final.clear();
                     zcal_final.clear();
-                    Log.e("calibration", " sum_x = " + sum_x);
-                    Log.e("calibration", " sum_y = " + sum_y);
-                    Log.e("calibration", " sum_z = " + sum_z);
-                    Log.e("calibration", " x = " + xcal);
-                    Log.e("calibration", " y = " + ycal);
-                    Log.e("calibration", " z = " + zcal);
+//                    Log.e("calibration", " sum_x = " + sum_x);
+//                    Log.e("calibration", " sum_y = " + sum_y);
+//                    Log.e("calibration", " sum_z = " + sum_z);
+//                    Log.e("calibration", " x = " + xcal);
+//                    Log.e("calibration", " y = " + ycal);
+//                    Log.e("calibration", " z = " + zcal);
                     value_count = 0;
                 }
+                state_lr = "hold";
+                state_ud = "hold";
+                state_fb = "hold";
             }
         });
         start.setOnClickListener(new View.OnClickListener() {
@@ -82,6 +85,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     start.setBackgroundColor(getResources().getColor(R.color.red));
                     start.setText(getResources().getText(R.string.start));
                     isdetecting = true;
+                    state_lr = "hold";
+                    state_ud = "hold";
+                    state_fb = "hold";
                 }
             }
         });
@@ -90,11 +96,17 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     protected void onResume() {
         super.onResume();
         sManager.registerListener(this, aSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        state_lr = "hold";
+        state_ud = "hold";
+        state_fb = "hold";
     }
     @Override
     protected void onPause() {
         super.onPause();
         sManager.unregisterListener(this);
+        state_lr = "hold";
+        state_ud = "hold";
+        state_fb = "hold";
     }
     @Override
     public void onSensorChanged(SensorEvent event) {
@@ -108,6 +120,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             float xtemp;
             float ytemp;
             float ztemp;
+            float pos_scale1 = 2f;
+            float neg_scale1 = -2f;
+            //float pos_scale2 = 0.5f;
+            //float neg_scale2 = -0.5f;
             if (event.sensor.getType() == Sensor.TYPE_LINEAR_ACCELERATION) {
                 xvalue = event.values[0];
                 yvalue = event.values[1];
@@ -147,6 +163,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     break;
                 default:
                     pos_lr.setText(getResources().getText(R.string.hold));
+                    break;
             }
             switch (state_fb) {
                 case "forward":
@@ -157,6 +174,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
                     break;
                 default:
                     pos_fb.setText(getResources().getText(R.string.hold));
+                    break;
             }
             switch (state_ud) {
                 case "up":
@@ -172,54 +190,84 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
             switch (state_lr) {
                 case "hold":
-                    if (xtemp > 1)
+                    if (xtemp > pos_scale1)
                         state_lr = "right";
-                    else if (xtemp < -1)
+                    else if (xtemp < neg_scale1)
                         state_lr = "left";
                     break;
                 case "left":
-                    if (xtemp > 0.2)
-                        state_lr = "hold";
+                    //if (xtemp > pos_scale2)
+                    //    state_lr = "hold";
+                    //break;
+                    if (xtemp > pos_scale1)
+                        state_lr = "right";
+                    else if (xtemp < neg_scale1)
+                        state_lr = "left";
                     break;
                 case "right":
-                    if (xtemp < -0.2)
-                        state_lr = "hold";
+                    //if (xtemp < neg_scale2)
+                    //    state_lr = "hold";
+                    //break;
+                    if (xtemp > pos_scale1)
+                        state_lr = "right";
+                    else if (xtemp < neg_scale1)
+                        state_lr = "left";
                     break;
                 default:
                     break;
             }
             switch (state_fb) {
                 case "hold":
-                    if (ytemp > 1)
-                        state_fb = "forward";
-                    else if (ytemp < -1)
+                    if (ztemp > pos_scale1)
                         state_fb = "back";
+                    else if (ztemp < neg_scale1)
+                        state_fb = "forward";
                     break;
                 case "forward":
-                    if (ytemp < -0.2)
-                        state_fb = "hold";
+                    //if (ytemp < neg_scale2)
+                    //    state_fb = "hold";
+                    //break;
+                    if (ztemp > pos_scale1)
+                        state_fb = "back";
+                    else if (ztemp < neg_scale1)
+                        state_fb = "forward";
                     break;
                 case "back":
-                    if (ytemp > 0.2)
-                        state_fb = "hold";
+//                    if (ytemp > pos_scale2)
+//                        state_fb = "hold";
+//                    break;
+                    if (ztemp > pos_scale1)
+                        state_fb = "back";
+                    else if (ztemp < neg_scale1)
+                        state_fb = "forward";
                     break;
                 default:
                     break;
             }
             switch (state_ud) {
                 case "hold":
-                    if (ztemp > 1)
+                    if (ytemp > pos_scale1)
                         state_ud = "up";
-                    else if (ztemp < -1)
+                    else if (ytemp < neg_scale1)
                         state_ud = "down";
                     break;
                 case "up":
-                    if (ztemp < -0.2)
-                        state_ud = "hold";
+                    //if (ztemp < neg_scale2)
+                    //    state_ud = "hold";
+                    //break;
+                    if (ytemp > pos_scale1)
+                        state_ud = "up";
+                    else if (ytemp < neg_scale1)
+                        state_ud = "down";
                     break;
                 case "down":
-                    if (ztemp > 0.2)
-                        state_ud = "hold";
+                    //if (ztemp > pos_scale2)
+                    //    state_ud = "hold";
+                    //break;
+                    if (ytemp > pos_scale1)
+                        state_ud = "up";
+                    else if (ytemp < neg_scale1)
+                        state_ud = "down";
                     break;
                 default:
                     break;
